@@ -38,7 +38,7 @@ const normalizar = (texto) => {
 module.exports = async (req, res) => {
   // 1. Segurança: Validação de Token de Acesso da IA (Header x-api-key)
   const apiKey = req.headers['x-api-key'];
-  if (!apiKey || apiKey !== process.env.TOKEN_SECRETO_IA) {
+  if (!apiKey || apiKey !== process.env.TOKEN_SECRETO_API_HORARIOS) {
     return res.status(401).json({ error: 'Acesso negado. Token inválido ou ausente.' });
   }
 
