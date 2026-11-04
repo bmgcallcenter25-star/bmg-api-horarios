@@ -63,8 +63,19 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // 4. Conecta ao banco de dados utilizando a string de ambiente correta configurada na Vercel
-    await sql.connect(process.env.STRING_DE_CONEXÃO_DO_BANCO_DE_DADOS);
+    // 4. Conecta ao banco de dados utilizando parâmetros estruturados e seguros
+    await sql.connect({
+      server: 'db-integragao.bmg-br.com.br',
+      port: 1433,
+      database: 'BostonBra',
+      user: 'bmg_ltrajano',
+      password: 'YTkEQ$69MX9#', // Substitua pela senha real do utilizador bmg_ltrajano
+      options: {
+        encrypt: true,
+        trustServerCertificate: true,
+        connectionTimeout: 30000
+      }
+    });
 
     // 5. Query aplicando as regras de negócio:
     // - clinica = idClinica
