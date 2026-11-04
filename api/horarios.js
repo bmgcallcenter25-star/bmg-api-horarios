@@ -63,9 +63,9 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // 4. Conecta ao banco de dados utilizando parâmetros estruturados e seguros
+    // 4. Conecta ao banco de dados utilizando o UUID direto do túnel Cloudflare para evitar cache de DNS
     await sql.connect({
-      server: 'db-integragao.bmg-br.com.br',
+      server: 'b689648a-a336-401a-a9d1e8cf47d01.cfargotunnel.com',
       port: 1433,
       database: 'BostonBra',
       user: 'bmg_ltrajano',
