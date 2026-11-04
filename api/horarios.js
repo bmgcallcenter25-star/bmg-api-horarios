@@ -69,7 +69,7 @@ module.exports = async (req, res) => {
       port: 1433,
       database: 'BostonBra',
       user: 'bmg_ltrajano',
-      password: 'YTkEQ$69MX9#', // Substitua pela senha real do utilizador bmg_ltrajano
+      password: 'YTkEQ$69MX9#',
       options: {
         encrypt: true,
         trustServerCertificate: true,
