@@ -63,8 +63,8 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // 4. Conecta ao banco de dados utilizando a string de ambiente
-    await sql.connect(process.env.DB_CONNECTION_STRING);
+    // 4. Conecta ao banco de dados utilizando a string de ambiente correta configurada na Vercel
+    await sql.connect(process.env.STRING_DE_CONEXÃO_DO_BANCO_DE_DADOS);
 
     // 5. Query aplicando as regras de negócio:
     // - clinica = idClinica
