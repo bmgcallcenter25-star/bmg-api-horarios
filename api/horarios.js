@@ -1,4 +1,3 @@
-// Dicionário de mapeamento das clínicas (De/Para) baseado na sua tabela
 const MAPA_CLINICAS = {
   "sao paulo": 1,
   "rio de janeiro": 2,
@@ -27,20 +26,17 @@ const MAPA_CLINICAS = {
   "florianopolis": 31
 };
 
-// Função auxiliar para normalizar textos (remover acentos e deixar minúsculo)
 const normalizar = (texto) => {
   if (!texto) return "";
   return texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 };
 
 module.exports = async (req, res) => {
-  // 1. Segurança: Validação de Token de Acesso da IA (Header x-api-key)
   const apiKey = req.headers['x-api-key'];
   if (!apiKey || apiKey !== process.env.TOKEN_SECRETO_API_HORARIOS) {
     return res.status(401).json({ error: 'Acesso negado. Token inválido ou ausente.' });
   }
 
-  // 2. Garante que apenas métodos GET ou POST sejam aceitos
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido. Use GET ou POST.' });
   }
@@ -52,7 +48,6 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Parâmetros obrigatórios ausentes: informe "cidade" e "data".' });
   }
 
-  // 3. Valida se a cidade enviada existe no mapeamento interno
   const cidadeNormalizada = normalizar(cidade);
   const idClinica = MAPA_CLINICAS[cidadeNormalizada];
 
@@ -61,14 +56,13 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // 4. Monta a URL do Gateway HTTP local exposto de forma segura pelo Cloudflare Tunnel
-    let gatewayUrl = `https://db-integragao.bmg-br.com.br/api/horarios?cidade=${encodeURIComponent(cidade)}&data=${encodeURIComponent(data)}`;
+    // Utiliza diretamente a URL nativa do Cloudflare Tunnel para contornar o erro de DNS
+    let gatewayUrl = `https://b689648a-a336-401a-a66b-9d1e8cf47d01.cfargotunnel.com/api/horarios?cidade=${encodeURIComponent(cidade)}&data=${encodeURIComponent(data)}`;
     
     if (tipo_tour) {
       gatewayUrl += `&tipo_tour=${encodeURIComponent(tipo_tour)}`;
     }
 
-    // 5. Faz a requisição HTTP para o Gateway local utilizando a variável de ambiente para o token interno
     const response = await fetch(gatewayUrl, {
       method: 'GET',
       headers: {
@@ -77,20 +71,11 @@ module.exports = async (req, res) => {
       }
     });
 
-    const textResult = await response.text();
-
-    // Retorna o status HTTP exato e o texto retornado pelo túnel/gateway para diagnóstico
-    return res.status(200).json({
-      status_gateway: response.status,
-      resposta_bruta: textResult
-    });
+    const dataResult = await response.json();
+    return res.status(response.status).json(dataResult);
 
   } catch (error) {
-    // Retorna a stack/mensagem detalhada de erro do fetch caso ocorra falha de rede/DNS/conexão
     console.error("Erro ao comunicar com o Gateway HTTP:", error);
-    return res.status(500).json({ 
-      error_detalhado: error.message,
-      cause: error.cause ? error.cause.toString() : null
-    });
+    return res.status(500).json({ error: 'Erro interno de comunicação com o gateway de dados.', detalhe: error.message });
   }
 };
