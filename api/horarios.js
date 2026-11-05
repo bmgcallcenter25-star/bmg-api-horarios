@@ -77,13 +77,20 @@ module.exports = async (req, res) => {
       }
     });
 
-    const dataResult = await response.json();
+    const textResult = await response.text();
 
-    // 6. Retorna a resposta obtida pelo gateway para a IA consumidora
-    return res.status(response.status).json(dataResult);
+    // Retorna o status HTTP exato e o texto retornado pelo túnel/gateway para diagnóstico
+    return res.status(200).json({
+      status_gateway: response.status,
+      resposta_bruta: textResult
+    });
 
   } catch (error) {
+    // Retorna a stack/mensagem detalhada de erro do fetch caso ocorra falha de rede/DNS/conexão
     console.error("Erro ao comunicar com o Gateway HTTP:", error);
-    return res.status(500).json({ error: 'Erro interno de comunicação com o gateway de dados.' });
+    return res.status(500).json({ 
+      error_detalhado: error.message,
+      cause: error.cause ? error.cause.toString() : null
+    });
   }
 };
