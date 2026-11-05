@@ -78,4 +78,4 @@ module.exports = async (req, res) => {
     console.error("Erro ao comunicar com o Gateway HTTP:", error);
     return res.status(500).json({ error: 'Erro interno de comunicação com o gateway de dados.', detalhe: error.message });
   }
-};
+}; 
