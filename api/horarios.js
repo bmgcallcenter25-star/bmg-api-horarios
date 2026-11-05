@@ -32,7 +32,8 @@ const normalizar = (texto) => {
 };
 
 module.exports = async (req, res) => {
-  const apiKey = req.headers['x-api-key'];
+  // Aceita o token tanto pelo header 'x-api-key' quanto pelo parâmetro '?token=' na URL para testes fáceis no browser
+  const apiKey = req.headers['x-api-key'] || req.query.token;
   if (!apiKey || apiKey !== process.env.TOKEN_SECRETO_API_HORARIOS) {
     return res.status(401).json({ error: 'Acesso negado. Token inválido ou ausente.' });
   }
