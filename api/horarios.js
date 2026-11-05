@@ -56,8 +56,8 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Aponta para o Cloudflare Tunnel público para a Vercel conseguir aceder à sua máquina
-    let gatewayUrl = `https://b689648a-a336-401a-a66b-9d1e8cf47d01.cfargotunnel.com/api/horarios?cidade=${encodeURIComponent(cidade)}&data=${encodeURIComponent(data)}`;
+    // Aponta para a variável de ambiente do Cloudflare Tunnel configurada na Vercel
+    let gatewayUrl = `${process.env.GATEWAY_URL}/api/horarios?cidade=${encodeURIComponent(cidade)}&data=${encodeURIComponent(data)}`;
     
     if (tipo_tour) {
       gatewayUrl += `&tipo_tour=${encodeURIComponent(tipo_tour)}`;
