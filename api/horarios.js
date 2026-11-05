@@ -68,11 +68,11 @@ module.exports = async (req, res) => {
       gatewayUrl += `&tipo_tour=${encodeURIComponent(tipo_tour)}`;
     }
 
-    // 5. Faz a requisição HTTP para o Gateway local com o token de segurança interno
+    // 5. Faz a requisição HTTP para o Gateway local utilizando a variável de ambiente para o token interno
     const response = await fetch(gatewayUrl, {
       method: 'GET',
       headers: {
-        'x-api-key': 'bmg_secure_token_Bmg@2050',
+        'x-api-key': process.env.TOKEN_SECRETO_API_HORARIOS,
         'Content-Type': 'application/json'
       }
     });
