@@ -56,8 +56,8 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Utiliza diretamente a URL nativa do Cloudflare Tunnel para contornar o erro de DNS
-  let gatewayUrl = `http://127.0.0.1:3000/api/horarios?cidade=${encodeURIComponent(cidade)}&data=${encodeURIComponent(data)}`;
+    // Aponta para o Cloudflare Tunnel público para a Vercel conseguir aceder à sua máquina
+    let gatewayUrl = `https://b689648a-a336-401a-a66b-9d1e8cf47d01.cfargotunnel.com/api/horarios?cidade=${encodeURIComponent(cidade)}&data=${encodeURIComponent(data)}`;
     
     if (tipo_tour) {
       gatewayUrl += `&tipo_tour=${encodeURIComponent(tipo_tour)}`;
@@ -78,4 +78,4 @@ module.exports = async (req, res) => {
     console.error("Erro ao comunicar com o Gateway HTTP:", error);
     return res.status(500).json({ error: 'Erro interno de comunicação com o gateway de dados.', detalhe: error.message });
   }
-}; 
+};
