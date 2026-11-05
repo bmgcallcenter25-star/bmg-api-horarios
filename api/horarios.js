@@ -1,5 +1,3 @@
-const sql = require('mssql');
-
 // Dicionário de mapeamento das clínicas (De/Para) baseado na sua tabela
 const MAPA_CLINICAS = {
   "sao paulo": 1,
@@ -54,7 +52,7 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Parâmetros obrigatórios ausentes: informe "cidade" e "data".' });
   }
 
-  // 3. Traduz o nome da cidade enviado pela IA para o ID numérico correspondente
+  // 3. Valida se a cidade enviada existe no mapeamento interno
   const cidadeNormalizada = normalizar(cidade);
   const idClinica = MAPA_CLINICAS[cidadeNormalizada];
 
@@ -63,58 +61,29 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // 4. Conecta ao banco de dados utilizando o UUID direto do túnel Cloudflare para evitar cache de DNS
-    await sql.connect({
-      server: 'b689648a-a336-401a-a9d1e8cf47d01.cfargotunnel.com',
-      port: 1433,
-      database: 'BostonBra',
-      user: 'bmg_ltrajano',
-      password: 'YTkEQ$69MX9#',
-      options: {
-        encrypt: true,
-        trustServerCertificate: true,
-        connectionTimeout: 30000
+    // 4. Monta a URL do Gateway HTTP local exposto de forma segura pelo Cloudflare Tunnel
+    let gatewayUrl = `https://db-integragao.bmg-br.com.br/api/horarios?cidade=${encodeURIComponent(cidade)}&data=${encodeURIComponent(data)}`;
+    
+    if (tipo_tour) {
+      gatewayUrl += `&tipo_tour=${encodeURIComponent(tipo_tour)}`;
+    }
+
+    // 5. Faz a requisição HTTP para o Gateway local com o token de segurança interno
+    const response = await fetch(gatewayUrl, {
+      method: 'GET',
+      headers: {
+        'x-api-key': 'bmg_secure_token_Bmg@2050',
+        'Content-Type': 'application/json'
       }
     });
 
-    // 5. Query aplicando as regras de negócio:
-    // - clinica = idClinica
-    // - fechatur = data desejada
-    // - id_cliente = 0 (horários livres)
-    let queryStr = `
-      SELECT hora, fechatur, fk_tipotur 
-      FROM sua_tabela_de_horarios 
-      WHERE clinica = @clinica 
-        AND fechatur = @data 
-        AND id_cliente = 0
-    `;
+    const dataResult = await response.json();
 
-    const request = new sql.Request();
-    request.input('clinica', sql.Int, idClinica);
-    request.input('data', sql.Date, data);
-
-    // Se a IA enviar o tipo de tour (ex: 1 para primeira vez), filtra também
-    if (tipo_tour) {
-      queryStr += ` AND fk_tipotur = @tipoTour`;
-      request.input('tipoTour', sql.Int, tipo_tour);
-    }
-
-    queryStr += ` ORDER BY hora ASC`;
-
-    const resultado = await request.query(queryStr);
-
-    // 6. Retorna o JSON limpo para a empresa de IA consumir
-    return res.status(200).json({
-      success: true,
-      cidade: cidade,
-      clinica_id: idClinica,
-      data_consultada: data,
-      total_disponiveis: resultado.recordset.length,
-      horarios: resultado.recordset.map(row => row.hora)
-    });
+    // 6. Retorna a resposta obtida pelo gateway para a IA consumidora
+    return res.status(response.status).json(dataResult);
 
   } catch (error) {
-    console.error("Erro na consulta ao banco:", error);
-    return res.status(500).json({ error: 'Erro interno ao consultar disponibilidade no banco de dados.' });
+    console.error("Erro ao comunicar com o Gateway HTTP:", error);
+    return res.status(500).json({ error: 'Erro interno de comunicação com o gateway de dados.' });
   }
 };
